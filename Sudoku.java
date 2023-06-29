@@ -12,7 +12,6 @@ public class Sudoku
 		Grid sudoku = new Grid(s_grid);
 		System.out.println(sudoku);
 
-		sudoku.updateAllSquares();
 
 		while (sudoku.iterate())
 		{
