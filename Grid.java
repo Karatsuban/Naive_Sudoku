@@ -18,7 +18,7 @@ public class Grid
 	Block[] rowBlock;
 	boolean default_grid = false; // wether this is a default 9x9 sudoku grid
 
-	public Grid(String desc)
+	public Grid(String desc, int size)
 	{
 		// Initialize a grid base on a string value
 		// the string can be of length 81, in that case, every character is a number or a blank
@@ -27,7 +27,7 @@ public class Grid
 		// if the string contains less than 81 values, the grid is created following the values and...
 		// ...the missing values are padded with blanks
 
-		this.base = 3;
+		this.base = size;
 		this.b_s = this.base*this.base;
 		this.grid = new Cell[this.b_s][this.b_s];
 		this.squareBlock = new Block[this.b_s];
@@ -48,11 +48,8 @@ public class Grid
 		this.populate(desc);
 		System.out.println("There are "+this.empty_cells+" empty cells in this grid");
 
-		System.out.println("First pass!");
 		this.updateAllCells(1); // first pass
-		System.out.println("Second pass!");
 		this.updateAllCells(2); // second pass
-		System.out.println("Third pass!");
 		this.updateAllCells(3); // second pass
 	}
 
@@ -176,7 +173,6 @@ public class Grid
 		else
 		{
 			this.grid[x_in][y_in] = new Cell(x_in, y_in, id, this.b_s);
-			// DON'T DO THIS HERE ! this.updateBlocksCounts(x_in, y_in); // updates the hypothesis counts
 		}
 
 		return true; // this cell value is not a duplicate
@@ -238,15 +234,6 @@ public class Grid
 				this.updateCell(cell, pass); // (row, col)
 			}
 		}
-
-		/*
-		System.out.println("FIFO update :");
-		for (int s=0; s<this.fifo_update.size(); s++)
-		{
-			Square sq = this.fifo_update.get(s);
-			System.out.println(sq.getX()+" "+sq.getY());
-		}
-		*/
 	}
 
 
@@ -254,8 +241,6 @@ public class Grid
 	{
 		// (x,y) = (row, col)
 		// update the cell with a different behavior according to pass
-
-		//System.out.println("Updating square"+x+" "+y+" value ="+this.grid[x][y].getValue());
 
 		if (cell.getIsSet())
 			return;
@@ -278,10 +263,9 @@ public class Grid
 			possible.removeAll(impossible); // removes all the values of the union from the hypothesis
 			cell.setPossible(possible); // set the new hypothesis
 
-			System.out.println("Cell "+cell.getId()+" possible="+possible);
 			if (possible.size() == 1) // the square (x,y) has only one possibility
 			{
-				System.out.println("Cell "+cell.getId()+" possible="+possible);
+				//System.out.println("Cell "+cell.getId()+" possible="+possible);
 				cell.setFinalValue(cell.toArray()[0]);
 				this.addToFifo(cell);
 			}
@@ -293,12 +277,8 @@ public class Grid
 			ArrayList<Cell> cells = this.updateBlocksCounts(cell);
 			if (pass >= 3)
 			{
-				// Add the array to the fifo
 				for(Cell c: cells)
-				{
-					System.out.println("Set the cell "+c.getId()+" with value "+c.getFinalValue());
-					this.addToFifo(c);
-				}
+					this.addToFifo(c); // add the cell to update
 			}
 		}
 	}
@@ -308,10 +288,7 @@ public class Grid
 	{
 		// Add the Cell to the fifo_update if it is not in yet
 		if (!this.fifo_update.contains(cell))
-		{
-			System.out.println("Adding cell "+cell.getId()+" to the fifo");
 			this.fifo_update.addLast(cell); // add the index of the square at the END of the queue
-		}
 	}
 
 
@@ -321,31 +298,43 @@ public class Grid
 		// returns true if there is at least one Cell
 		// else returns false
 
-		System.out.println("There are currently: "+this.fifo_update.size()+" elements in the fifo");
+		//System.out.println("There are currently: "+this.fifo_update.size()+" elements in the fifo");
 		if (this.fifo_update.size() == 0)
 		{
 			System.out.println("Final Output !");
+			System.out.println("There are now "+this.empty_cells+" empty cells in the grid");
 			return false; // no more elements to update
 		}
+
+		this.empty_cells -= 1; // decrement the empty_cells counter
 
 		Cell elt = this.fifo_update.removeFirst(); // get the first element of the fifo
 		int x = elt.getX();
 		int y = elt.getY();
 
-		System.out.print("Doing elt at coord: "+y+" "+x+" ");
-		System.out.println("Value is: "+elt.getFinalValue());
-
 		int value = elt.getFinalValue(); // get the final value
 		elt.setValue(value); // set it as the value of the cell
 
-
+		// Update every block with the new value
 		this.updateBlocksValues(x, y, value);
+
+
+		// Remove the cell from all of its Block's hyp_count
+		int i = (y/this.base)%this.base;
+		int j = (x/this.base)%this.base;
+
+		this.columnBlock[y].removeCountOfCell(elt);
+		this.rowBlock[x].removeCountOfCell(elt);
+		this.squareBlock[j*this.base+i].removeCountOfCell(elt);
+
 
 		// compute o_i and o_j
 		int oj = (y/this.base)%this.base;
 		int oi = (x/this.base)%this.base;
-		//System.out.println("Big Square origin: "+oi+" "+oj);
-		int i,j;
+
+		// update the Blocks attached to it
+		// loop on all the cells from the column, row and square around and update them
+
 		for (int a = 0; a<this.b_s; a++)
 		{
 			j = a/this.base;
@@ -355,22 +344,18 @@ public class Grid
 			this.updateCell(this.grid[a][y], 4); // update every square in the column y
 			this.updateCell(this.grid[oj+j][oi+i], 4); // updates every cell of the big square
 		}
-		System.out.println();
-		// update the Blocks attached to it
-		// loop on all the cells from the column, row and square around and update them
+
 		return true; // one element has been updated
 	}
 
 
 
-
-	// GETTERS
-
-
-	public int getUpdatableSize()
+	public String getStringRepr()
 	{
-		return this.fifo_update.size();
+		// returns a string containing the representation of the grid
+		// TODO !
 	}
+
 
 
 	@Override
@@ -378,7 +363,7 @@ public class Grid
 	{
 		// TODO FIXME : adapt this function to the grid size
 		String out="";
-		int i,j = 0;
+		int i,j, value;
 		for (i=0; i<this.b_s; i++) // row number
 		{
 			if (i%this.base == 0)
@@ -388,7 +373,19 @@ public class Grid
 			{
 				if (j%this.base == 0)
 					out += "|";
-				out += this.grid[i][j].toString();
+
+				if (this.grid[i][j].getIsSet())
+				{
+					value = this.grid[i][j].getValue();
+					if (this.default_grid)
+						out += String.valueOf(value+1);
+					else
+						out += String.valueOf(value);
+				}
+				else
+				{
+					out += " ";
+				}
 				if (j == this.b_s-1)
 					out += "|";
 			}
@@ -403,6 +400,47 @@ public class Grid
 		return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
 	}
 
+
+	// DEBUG function
+
+	public void probe(String s)
+	{
+		int id, x, y;
+		if (!this.isNumeric(s))
+			return;
+
+		id = Integer.parseInt(s);
+		x = id/this.b_s;
+		y = id%this.b_s;
+
+		Cell c = this.grid[x][y];
+
+		System.out.println("The cell "+id+" ("+y+","+x+") has :");
+		System.out.println("Value = "+c.getValue());
+		System.out.println("Possible = "+c.getPossible());
+
+
+		int i = (y/this.base)%this.base;
+		int j = (x/this.base)%this.base;
+
+		ArrayList<Set<Cell>> alsc;
+
+		System.out.println("column "+y+" hyp_count");
+		alsc = this.columnBlock[y].getHypCount();
+		for(int a=0; a<this.b_s; a++)
+			System.out.println(a+" "+alsc.get(a));
+
+		System.out.println("row "+x+" hyp_count");
+		alsc = this.rowBlock[x].getHypCount();
+		for(int a=0; a<this.b_s; a++)
+			System.out.println(a+" "+alsc.get(a));
+
+		System.out.println("square "+(j*this.base+i)+" hyp_count");
+		alsc = this.squareBlock[j*this.base+i].getHypCount();
+		for(int a=0; a<this.b_s; a++)
+			System.out.println(a+" "+alsc.get(a));
+
+	}
 
 }
 

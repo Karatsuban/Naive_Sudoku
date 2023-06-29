@@ -106,17 +106,12 @@ public class Cell
 	@Override
 	public String toString()
 	{
-		// TODO : move this detection code to Grid.java, always return the value.toString() (or " ")
+		return String.valueOf(this.id);
+		/*
 		if (this.isSet)
-		{
-			if (this.default_print)
-				return String.valueOf(value+1);
-			else
-				return String.valueOf(value);
-		}
+			return String.valueOf(value);
 		else
-		{
 			return " ";
-		}
+		*/
 	}
 }

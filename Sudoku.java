@@ -9,7 +9,7 @@ public class Sudoku
 		Scanner user_input = new Scanner(System.in); // read from user
 		System.out.println("Enter a sudoku-describing string");
 		String s_grid = user_input.nextLine();
-		Grid sudoku = new Grid(s_grid);
+		Grid sudoku = new Grid(s_grid, 3); // TODO : add an argument to chose the grid size
 		System.out.println(sudoku);
 
 
@@ -17,15 +17,16 @@ public class Sudoku
 		{
 		}
 		System.out.println(sudoku);
-		/*
-		while (sudoku.getUpdatableSize() != 0)
-		{
-			Square elt = sudoku.getFirstElement();
-			int x = elt.getX();
-			int y = elt.getY();
 
-			sudoku.updateAroundSquare(x,y);
+
+		// Probing code for debug
+		System.out.println("DEBUG mode : type 'exit' to quit");
+		s_grid = "";
+		while (!s_grid.equals("exit"))
+		{
+			s_grid = user_input.nextLine();
+			sudoku.probe(s_grid);
 		}
-		*/
+
 	}
 }

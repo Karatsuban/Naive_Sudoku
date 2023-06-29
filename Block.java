@@ -35,7 +35,7 @@ public class Block
 	}
 
 
-	private void removeCountOfCell(Cell cell)
+	public void removeCountOfCell(Cell cell)
 	{
 		// remove the given cell from the hyp_count
 		for (int a=0; a<this.block_size; a++)
@@ -47,9 +47,7 @@ public class Block
 	public ArrayList<Cell> updateCount(Cell cell)
 	{
 		// remove the cell from all the hyp_count
-		// adds the cee to all the values of its possible in hyp_count
-
-		// TODO : authorize the Block to access the cell to give it a set value !
+		// adds the cell to all the values of its possible in hyp_count
 
 
 		this.removeCountOfCell(cell);
@@ -65,19 +63,11 @@ public class Block
 			temp.add(cell);
 			if (temp.size() == 1)
 			{
-				//System.out.println("We could set the cell "+cell.getId()+" at value "+a);
 				cell.setFinalValue(a);
 				cells.add(cell);
 			}
 			this.hyp_count.set(a, temp);
-			//this.hyp_count.get(a).add(id); // TODO : does it do the same thing as the 3 previous lines ?
 
-			// REMOVE ME VVV
-			/*
-			if (id == 2 || id == 9)
-				System.out.println("id="+id+" digit="+a+" "+temp);
-			*/
-			// REMOVE ME AAA
 		}
 
 		return cells;
@@ -97,5 +87,9 @@ public class Block
 		return this.values;
 	}
 
+	public ArrayList<Set<Cell>> getHypCount()
+	{
+		return this.hyp_count;
+	}
 
 }
