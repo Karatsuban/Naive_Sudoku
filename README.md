@@ -5,7 +5,7 @@ A (very) naive Sudoku solver to help complete simple grids
 ## Setup
 
 Compile with the command  
->$ javac *.java && javac . -d *.java
+>$ javac *.java && javac -d . *.java
 
 Launch with the command
 >$ java Naive_Sudoku.Sudoku
