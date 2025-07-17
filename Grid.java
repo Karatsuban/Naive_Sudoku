@@ -354,6 +354,7 @@ public class Grid
 	{
 		// returns a string containing the representation of the grid
 		// TODO !
+		return "";
 	}
 
 
